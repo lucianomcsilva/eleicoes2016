@@ -1,0 +1,159 @@
+//Conexão no banco de dados
+  $dbConn = new mysqli($host, $user, $pass, $db);
+  if(!$rs = $dbConn->query($sql)) die('There was an error running the query ('.$sql.') [' . $dbConn->error . ']');
+  $row = $rs->fetch_array();
+  for($i = 0; $i < $rs->num_rows; $i++)
+  {
+      //$row = mysql_fetch_array($rs);
+      $row = $rs->fetch_array();
+      $lisCidades[$i] = $row['CD_CIDADE_ANP']."*".$row['NM_CIDADE_ANP'];
+      $lisNomeCidades[$row['CD_CIDADE']] = $row['NM_CIDADE'];
+      //echo $lisCidades[$i]."<br>\n";       
+   };
+
+
+
+//Exemplo de busca de dados na ANP
+function InsereArquivo2($filename, $CdCidade, $CdCombustivel)
+{
+   global $dbConn;
+   $lista = new TListaPesquisaPosto();      
+   $doc   = new DOMDocument();
+
+   @$doc->loadHTMLFile($filename);
+   $tables = $doc->getElementsByTagName('table');
+   if($tables->length == 0) return;
+   //echo "teste: $filename - $CdCidade - $CdCombustivel<br>";
+   $rows = $tables->item(0)->getElementsByTagName('tr');
+   $i = 0;
+   foreach ($rows as $row) 
+   {        
+      if($i == 0)
+      {
+         $cols = $row->getElementsByTagName('th');
+         $i++;
+         continue;
+      }
+      else
+         $cols = $row->getElementsByTagName('td');
+      
+      $i++;
+        
+      // 0 - razão social  
+      // 1 - endereço 
+      // 2 - bairro  
+      //$rs = ExecutaQuery("SELECT * FROM `ii_cidades`"); //Just to open a link to mysql and do the escape;
+      if($dbConn->connect_errno > 0)
+      {
+         die('Unable to connect to database [' . $dbConn->connect_error . ']');
+      }
+      $razao    = $dbConn->real_escape_string($cols->item(0)->nodeValue);
+      $endereco = $dbConn->real_escape_string($cols->item(1)->nodeValue);
+      $bairro   = $dbConn->real_escape_string($cols->item(2)->nodeValue);
+      /*
+      $razao    = mysql_real_escape_string($cols->item(0)->nodeValue);
+      $endereco = mysql_real_escape_string($cols->item(1)->nodeValue);
+      $bairro   = mysql_real_escape_string($cols->item(2)->nodeValue);
+      */
+      $pesquisa_posto = $lista->NewPosto($razao, $endereco, $bairro, $CdCidade);
+      
+      // 3 - bandeira
+      $nome_bandeira = $cols->item(3)->nodeValue;
+      $nome_bandeira = str_ireplace("'", "`", $nome_bandeira);
+      $pesquisa_posto->setBandeira($nome_bandeira);
+      
+      $pesquisa_posto->setCombustivel($CdCombustivel);
+      
+      // 4 - preço venda           
+      if(trim($cols->item(4)->nodeValue) == "-")
+         $preco_venda = 'null';
+      else
+         $preco_venda = str_replace(',','.', $cols->item(4)->nodeValue);
+      
+      // 5 - preço compra            
+      if(trim($cols->item(5)->nodeValue) == "-")
+         $preco_compra = 'null';
+      else
+         $preco_compra = str_replace(',','.', $cols->item(5)->nodeValue);
+           
+      // 6 - modalidade de compra  
+      // 7 - fornecedor (b. branca)
+      // 8 - data coleta    
+      $value = $cols->item(8)->nodeValue; 
+      $data  = substr($value, 6, 4)."-".substr($value, 3, 2)."-".substr($value, 0, 2);
+                   
+         
+      $pesquisa_posto->setPesquisa($data, $cols->item(7)->nodeValue, $cols->item(6)->nodeValue, $preco_compra, $preco_venda);
+   } 
+   //17435   
+   if($tables->length == 1) return;
+   $rows = $tables->item(2)->getElementsByTagName('tr');
+   $i = 0;
+   foreach ($rows as $row) 
+   { 
+     // get each column by tag name 
+      if($i == 0) {$i++; continue;}
+      elseif($i == 1)
+      {
+         $i++;
+         continue;
+      }
+      else
+         $cols = $row->getElementsByTagName('td');
+      
+      $i++;
+      // echo the values
+      // 0 razão social 
+      // 1 endereço 
+      // 2 bairro   
+      // 3 bandeira
+      // 4 data recusa
+      //$rs = ExecutaQuery("SELECT * FROM `ii_cidades`"); //Just to open a link to mysql and do the escape;
+      //$pesquisa_posto = $lista->RetornaPosto(mysql_real_escape_string($cols->item(1)->nodeValue));
+      $pesquisa_posto = $lista->RetornaPosto($dbConn->real_escape_string($cols->item(1)->nodeValue));
+      if($pesquisa_posto === false)
+      {
+         echo "<b>Endereco procurado: </b>{$cols->item(1)->nodeValue}<br>";
+         echo "<b>Lista de Enereços: </b><br>".$lista ;
+         die("Erro grave.");
+      }         
+      $pesquisa_posto->setNota(0);
+   } 
+   $num_duplicados = 0;
+   $num_registros  = 0;
+   $num_novos      = 0;
+   foreach ($lista->lisPesquisaPosto as $key=>$pesquisa_posto) 
+   {         
+      if($pesquisa_posto->Salva() == -1)
+         $num_duplicados++;    
+      else     
+         $num_registros++;
+         
+      if($pesquisa_posto->Novo === true)
+         $num_novos++;         	
+   }
+   $ag = array();
+   $ag['registros']  = $num_registros;
+   $ag['duplicados'] = $num_duplicados;
+   $ag['novos']      = $num_novos;
+   
+   return $ag;      
+}
+
+
+
+//Forcar o Download
+header("Content-type: application/octet-stream");
+header("Content-Disposition: attachment; filename=spreadsheet.xls");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+
+function cURLcheckBasicFunctions()
+{
+  if( !function_exists("curl_init") &&
+      !function_exists("curl_setopt") &&
+      !function_exists("curl_exec") &&
+      !function_exists("curl_close") ) return false;
+  else return true;
+}

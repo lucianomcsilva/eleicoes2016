@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="generator" content="PSPad editor, www.pspad.com">    
+    <script   src="https://code.jquery.com/jquery-1.12.4.min.js"   integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="   crossorigin="anonymous"></script>
+    <title>Eleições 2016</title>
+    <script>
+     /*
+     * Replace all SVG images with inline SVG
+     */
+
+     
+      $(document).ready(function() 
+      {     
+        jQuery('img.svg').each(function(){
+            var $img = jQuery(this);
+            var imgID = $img.attr('id');
+            var imgClass = $img.attr('class');
+            var imgURL = $img.attr('src');
+
+            jQuery.get(imgURL, function(data) {
+                // Get the SVG tag, ignore the rest
+                var $svg = jQuery(data).find('svg');
+
+                // Add replaced image's ID to the new SVG
+                if(typeof imgID !== 'undefined') {
+                    $svg = $svg.attr('id', imgID);
+                }
+                // Add replaced image's classes to the new SVG
+                if(typeof imgClass !== 'undefined') {
+                    $svg = $svg.attr('class', imgClass+' replaced-svg');
+                }
+
+                // Remove any invalid XML tags as per http://validator.w3.org
+                $svg = $svg.removeAttr('xmlns:a');
+
+                // Replace image with new SVG
+                $img.replaceWith($svg);
+                //$svg.attr("width", 400);
+                //$svg.attr("height", 400);
+
+            }, 'xml');
+
+        });        
+   });
+
+   
+    </script>
+    <style>
+      svg path:hover {
+          fill: red !important;
+      }    
+    </style>
+  </head>
+ <body>   
+   
+      <div name='box-chart' id='box-chart' style="border:1px solid red; float:left; width:900px heigth:900px;">
+         <!-- SVG bairros de são paulo -->
+         <img id="distritos" class="svg nada" src="saopaulo_final.svg"/>
+         <!--Fim do SVG -->
+      </div>
+      <div id='box-commands' style="border:1px solid red; float:left; margin:5px;">
+         <select id='select_distrito'>
+         </select>
+      </div>
+      <script>              
+         $(document).ready(function() 
+         {
+            //delay para poder carregar o objeto
+            setTimeout(criaCombo, 1000);
+            setTimeout((function()
+            {                              
+               $("path").on('click', function() 
+               {                  
+                  for(i = 0; i < $("path").length; i++)
+                  {
+                    if($("path")[i].id == this.id) break; 
+                  
+                  }
+                  console.log(i + "::" + this.id);
+                  //console.log($(this));
+               })            
+            }), 1000);
+         }); 
+         //---------------------------------------------------------------------
+         var criaCombo = function()
+         {
+            
+            for(i = 0; i < $("path").length; i++)
+            {
+               $('#select_distrito').append($('<option>', {
+                   value: i,
+                   text: $("path")[i].id + " - " + i 
+               }));
+               
+               encontrados = [4,9,7,24,87,77,26,62,100,20,85,69,5,58,35,13,55,22,61,27,99,38,57,53,63,3,25,8,59,28,10,52,14,79,64,32,60,66,12,29,0,37,84,51,76,80,68,101,97,54,56,50,98,33,21,81,49,31,19,39,93,95,70,47,90,65,48,11,91,41,67,71,94,74,46,45,18,40,82,43,92,86,72,6,96,83,1,44,104,103,73,102,42,75,2];
+               if($.inArray(i, encontrados)) mudaCor(i);
+            }
+            
+            
+            
+            
+   
+            console.log("uhuuu");     
+         }; 
+         //---------------------------------------------------------------------  
+         $('#select_distrito').on('change', function() 
+         {
+            embranquicar();
+            mudaCor ($(this).val()); // or $(this).val()
+         });
+         //---------------------------------------------------------------------   
+         //---------------------------------------------------------------------   
+         function getRandomInt(min, max) 
+         {
+            return Math.floor(Math.random() * (max - min)) + min;
+         }
+         //---------------------------------------------------------------------
+         var embranquicar = function()
+         {
+            for(i = 0; i < $("path").length; i++)
+            {
+               if(i != 192)
+                  $("path")[i].style.fill = "rgb(255,255,255)";
+            }
+               
+         }
+         //---------------------------------------------------------------------
+         var mudaCorAuto = function()
+         {
+            r = getRandomInt(0,16) * 16;
+            g = getRandomInt(0,16) * 16;
+            b = getRandomInt(0,16) * 16;            
+            item = getRandomInt(0, 246);
+            
+            $("path")[item].style.fill = "rgb("+r+","+g+","+b+")";
+            console.log(item);
+         }
+         //---------------------------------------------------------------------
+         var mudaCor = function(item)
+         {
+            r = getRandomInt(0,8) * 32;
+            g = getRandomInt(0,8) * 32;
+            b = getRandomInt(0,8) * 32;            
+            //item = getRandomInt(0, 246);
+            
+            $("path")[item].style.fill = "rgb("+r+","+g+","+b+")";
+            console.log(item);
+         }
+         var startMudaCor = function(item)
+         {            
+
+            //console.log(item);
+            //embranquicar();
+            r = getRandomInt(0,3) * 128;
+            g = getRandomInt(0,3) * 128;
+            b = getRandomInt(0,3) * 128;           
+            //item = getRandomInt(0, 246);
+            $("path")[item].style.fill = "rgb("+r+","+g+","+b+")";
+            if(item < $("path").length-1)
+               setTimeout(function(){startMudaCor(++item);}, 3);
+            else
+               setTimeout(function(){startMudaCor(0);}, 10);                         
+                            
+         }
+         var startRotating = function(Angle)
+         {
+         
+            $($("svg")[0]).find("g").attr("transform", "rotate("+Angle+", 201, 295)");
+            Angle = Angle + 15;
+            setTimeout((function(){startRotating(Angle);}), 100);
+         }
+         //---------------------------------------------------------------------
+         //setInterval(mudaCorAuto, 100);
+      </script>
+ </body>
+</html>

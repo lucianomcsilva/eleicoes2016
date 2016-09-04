@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <base href="http://192.168.1.119/labs/eleicoes2016/" target="_blank">
+    <meta charset="UTF-8">
+    
+    <meta name="generator" content="PSPad editor, www.pspad.com">    
+    <script   src="https://code.jquery.com/jquery-1.12.4.min.js"   integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="   crossorigin="anonymous"></script>
+    <title>Eleições 2016</title>
+    <script>
+     /*
+     * Replace all SVG images with inline SVG
+     */
+
+     
+      $(document).ready(function() 
+      {     
+        jQuery('img.svg').each(function(){
+            var $img = jQuery(this);
+            var imgID = $img.attr('id');
+            var imgClass = $img.attr('class');
+            var imgURL = $img.attr('src');
+
+            jQuery.get(imgURL, function(data) {
+                // Get the SVG tag, ignore the rest
+                var $svg = jQuery(data).find('svg');
+
+                // Add replaced image's ID to the new SVG
+                if(typeof imgID !== 'undefined') {
+                    $svg = $svg.attr('id', imgID);
+                }
+                // Add replaced image's classes to the new SVG
+                if(typeof imgClass !== 'undefined') {
+                    $svg = $svg.attr('class', imgClass+' replaced-svg');
+                }
+
+                // Remove any invalid XML tags as per http://validator.w3.org
+                $svg = $svg.removeAttr('xmlns:a');
+
+                // Replace image with new SVG
+                $img.replaceWith($svg);
+                //$svg.attr("width", 400);
+                //$svg.attr("height", 400);
+
+            }, 'xml');
+
+        });        
+   });
+
+   
+    </script>
+    <style>
+      body
+      {
+         font-family: Calibri;      
+      }
+      svg path:hover {
+          fill: rgb(255,200,200) !important;  
+         cursor: pointer;          
+      }    
+      
+      .box-text
+      {
+         margin-left: 25px;
+         display:block;
+         overflow: visible;
+      }
+      .squote
+      {
+         font-family: Calibri;
+         font-size: 36px;
+         width: 20px;
+         display: block;
+         float: left;
+         color: #c1c100;
+      }
+      .div-tweet:hover 
+      {
+         background: #eeeeee;
+         opacity: 0.8;
+         cursor: pointer;
+      }
+      .div-tweet
+      {
+         height: 50px;;
+         border: 1px solid  #cacaca;
+         margin: 5px;
+         padding: 5px;
+         
+      
+      }
+      
+    </style>
+  </head>
+ <body>   
+   
+      <div name='box-chart' id='box-chart' style="margin:0px; border:1px solid #cacaca; float:left;">
+         <div name='box-select' style="border:1px solid #cacaca; margin:5px; padding:5px;">
+            <span style="display: inline-block; width:240px;">Indicadores sócio economicos</span> 
+            <select id="select_source" style="margin:5px; width:auto; border:1px solid #cacaca">               
+               <option value="/backend/populacao.php">Populacao</option>
+               <option value="/backend/idh.php">IDH</option>
+               <option value="/backend/renda.php">Renda per capita</option>
+               <option value="/backend/equip_cult.php">Centros Culturais</option>
+               <option value="/backend/equip_esport.php">Centros Esportivos</option>
+               <option value="/backend/leitos_hospitais.php">Unid. Hospitalares</option>
+               <option value="/backend/cache.json">cache</option>               
+            </select>
+         </div>         
+            
+         <div style="border:1px solid #cacaca; margin:5px; padding:5px;">
+               <span style="display: inline-block; width:110px;">Busca:</span> <input type="text" id='iq' value="" style="width:120px;">
+               <button id="button_search" style="width:120px; float:right;">Buscar no Twitter</button>  
+         </div>
+         
+         <div style="border:1px solid #cacaca; margin:5px; padding:5px;">
+            <span style="display: inline-block; width:110px;">Monitoramento:</span>
+            <select id="select_monitoring_id" style="margin:5px; border:1px solid #cacaca; width:120px;">
+               <option value="0">Selecione</option>
+               <option value="0">Haddad</option>
+               <option value="1">Doria</option>
+               <option value="2">Russomano</option>
+               <option value="2">Marta</option>
+            </select>   
+            <button id="button_search" style="width:120px; float:right;">Buscar no SCUP</button>  
+         </div>         
+         <div style="border:1px solid #cacaca; margin:5px; padding:5px;">
+            <span style="display: inline-block; width:110px;">Sentimento:</span>
+            <select id="select_monitoring_id" style="margin:5px; width:auto; border:1px solid #cacaca" style="width:120px;">
+               <option value="0">Selecione</option>
+               <option value="1">Positivo</option>
+               <option value="2">Neutro</option>
+               <option value="3">Negativo</option>
+               <option value="4">Não Classificado</option>               
+            </select>   
+            <button id="button_search" style="width:120px; float:right;">Filtrar</button>  
+         </div>
+         <div style="border:1px solid #cacaca; margin:5px; padding:5px;">
+            <span style="display: inline-block; width:110px;">tags:</span>
+            <select id="select_monitoring_id" style="margin:5px; width:auto; border:1px solid #cacaca" style="width:120px;">
+               <option value="0">Selecione</option>
+               <option value="1">Influentes</option>
+               <option value="2">Assistiram debate</option>
+               <option value="3">Não Eleitores</option>
+               <option value="4">Outros Candidatos</option>               
+            </select>   
+            <button id="button_search" style="width:120px; float:right;">Filtrar</button>  
+         </div>         
+                  
+         <div id='box-image'>
+            <!-- SVG bairros de são paulo -->
+            <img id="distritos" class="svg nada" src="saopaulo_final.svg"/>
+            <!--Fim do SVG -->
+         </div>
+         <div id='box-detail'  style="font-family: Calibri; padding: 5px; width: 170px;height: 240px;background: #f3f3c7;position: absolute;left: 220px;top: 580px;">
+            <span id='detail-name'>teste</span>
+            <br>
+            <span id='detail-value'>teste</span>
+            <span id='detail-color'>teste</span>            
+         </div>                 
+      </div>
+      <div id='box-tweet' style="margin:5px; padding:5px; border:1px solid #cacaca; margin-left: 410px; height: 683px;">
+         <div name='box-tweet-title' id='box-tweet-title'></div>          
+         <div name='box-tweet-container' id='box-tweet-container' style="height:580px; overflow-y:scroll; margin-right:-5px;"></div>
+      </div>
+      
+      <div id="div_loading" style="z-index: 999999; display:none; position:absolute;width:100%;height: 100%;top: 0;left: 0;opacity: 0.5; background: url(2.gif) no-repeat center center; background-color: #000000;"></div>
+      <script>    
+         function addCommas(nStr)
+         {
+         	nStr += '';
+         	x = nStr.split('.');
+         	x1 = x[0];
+         	x2 = x.length > 1 ? '.' + x[1] : '';
+         	var rgx = /(\d+)(\d{3})/;
+         	while (rgx.test(x1)) {
+         		x1 = x1.replace(rgx, '$1' + ',' + '$2');
+         	}
+         	return x1 + x2;
+         }            
+         //---------------------------------------------------------------------  
+         $('#select_source').on('change', function() 
+         {
+            console.log($(this).val());
+            $.get("http://192.168.1.119//labs/eleicoes2016/"+$(this).val(), function(Data)
+            {                        ;
+               plot = Data.results.plots;
+               max = -9999999999999;
+               min = 9999999999999;               
+               plotaGrafico();
+            }, "json");
+         });         
+         //---------------------------------------------------------------------
+         var description = "";
+         var tweet = [];
+         var plot = [  
+            [4, 4],
+            [9, 9],
+            [7, 7],
+            [24, 24],
+            [87, 87],
+            [77, 77],
+            [26, 26],
+            [62, 62],
+            [100, 100],
+            [20, 20],
+            [78, 78],
+            [85, 85],
+            [69, 69],
+            [5, 5],
+            [58, 58],
+            [35, 35],
+            [13, 13],
+            [55, 55],
+            [22, 22],
+            [61, 61],
+            [27, 27],
+            [99, 99],
+            [38, 38],
+            [57, 57],
+            [53, 53],
+            [63, 63],
+            [3, 3],
+            [25, 25],
+            [8, 8],
+            [59, 59],
+            [28, 28],
+            [10, 10],
+            [52, 52],
+            [14, 14],
+            [79, 79],
+            [64, 64],
+            [32, 32],
+            [60, 60],
+            [66, 66],
+            [12, 12],
+            [29, 29],
+            [0, 0],
+            [37, 37],
+            [84, 84],
+            [51, 51],
+            [76, 76],
+            [80, 80],
+            [68, 68],
+            [101, 101],
+            [97, 97],
+            [54, 54],
+            [56, 56],
+            [50, 50],
+            [98, 98],
+            [33, 33],
+            [21, 21],
+            [81, 81],
+            [49, 49],
+            [31, 31],
+            [19, 19],
+            [39, 39],
+            [93, 93],
+            [95, 95],
+            [70, 70],
+            [47, 47],
+            [90, 90],
+            [65, 65],
+            [48, 48],
+            [11, 11],
+            [91, 91],
+            [41, 41],
+            [67, 67],
+            [71, 71],
+            [94, 94],
+            [74, 74],
+            [46, 46],
+            [45, 45],
+            [18, 18],
+            [40, 40],
+            [82, 82],
+            [43, 43],
+            [92, 92],
+            [86, 86],
+            [72, 72],
+            [6, 6],
+            [96, 96],
+            [83, 83],
+            [1, 1],
+            [44, 44],
+            [104, 104],
+            [103, 103],
+            [73, 73],
+            [102, 102],
+            [42, 42],
+            [75, 75],
+            [2, 2]            
+         ];
+         var max = -9999999999999;
+         var min = 9999999999999;
+         
+         //--------------------------------------------------------------------- 
+         var calculaEixos = function()
+         {         
+            max = -9999999999999;
+            min = 9999999999999;            
+            for(i = 0; i < plot.length; i++)
+            {
+               //console.log("<br>max:"+addCommas(max)+"<br>min:"+addCommas(min)+"<br>actual:"+addCommas(plot[i][1]));
+               if(parseInt(plot[i][1]) > max) max = plot[i][1];
+               if(parseInt(plot[i][1]) < min) min = plot[i][1];                
+            }             
+            console.log("["+min+", "+max+"]");
+         }
+         //---------------------------------------------------------------------
+         
+         var plotaGrafico = function()
+         {
+            calculaEixos();
+            for(i = 0; i < plot.length; i++)
+            {
+               r = 255 - parseInt(((plot[i][1] - min)/(max-min))*255);
+               g = 255 - parseInt(((plot[i][1] - min)/(max-min))*255);
+               b = 0 - parseInt(((plot[i][1] - min)/(max-min))*255);
+                           
+               id = "#path"+parseInt(plot[i][0]);             
+               
+               if($(id)[0] !== undefined)
+                  $(id)[0].style.fill = "rgb("+r+","+g+","+b+")";
+               else
+                  console.log(id);            
+               //$("path")[plot[i][0]].style.fill = "rgb("+r+","+g+","+b+")";
+               //console.log(plot[i][0]+" - "+"rgb("+r+","+g+","+b+")");
+            }
+         }
+         //---------------------------------------------------------------------   
+         $(document).ready(function()
+         {
+            setTimeout(plotaGrafico, 1000);
+            setTimeout((function()
+            {                              
+               $("path").hover(function() 
+               {                         
+                  cd_path = parseInt(this.id.substr(4));
+                  try
+                  {                                                
+                     console.log(description[cd_path].nome);
+                  }
+                  catch(Err)
+                  {
+                     console.log(cd_path);
+                  }
+                  $("#detail-name").html(description[cd_path].nome);
+                  $("#detail-value").html(addCommas(plot[description[cd_path].codigo-1][1]));
+                  
+                  r = 255 - parseInt(((plot[description[cd_path].codigo-1][1] - min)/(max-min))*255);                           
+                  $("#detail-color").html("<br>max:"+addCommas(max)+"<br>min:"+addCommas(min)+"<br>actual:"+addCommas(plot[description[cd_path].codigo-1][1])+"<br>calc:"+r);
+                  //console.log($(this));
+               });
+               //---------------------------------------------------------------            
+               $("path").click(function() 
+               {                         
+                  cd_path = parseInt(this.id.substr(4));
+                  $("#box-tweet-title").html("");
+                  $("#box-tweet-container").html("");
+                  try
+                  {                             
+                     $("#box-tweet-title").append("<h1 style='margin:0px; margin-left:5px; font-size:72px;color: #c1c100;'>"+description[cd_path].nome+"</h1>");                   
+                     $("#box-tweet-title").append("<h4 style='margin:0px; margin-left:5px;'>"+tweet[cd_path][0].length+" tweets encontrados</h4>");
+                     
+                     for(i = 0; i < tweet[cd_path][0].length; i++)
+                     {                     
+                        $("#box-tweet-container").append('<div class="div-tweet"><span class="squote">“</span><span class="box-text">Tweet:'+tweet[cd_path][0][i].Tweet + '</span></div>');
+                     }                                                 
+                  }
+                  catch(Err)
+                  {
+                     $("#box-tweet-title").append("<h4 style='margin:0px; margin-left:5px;'>Sem informação de tweets</h4>");
+                  }                  
+                  
+                  
+                  
+                  //console.log($(this));
+               })               
+            }), 1000);
+            $.get("http://192.168.1.119/labs/eleicoes2016/backend/description.php", function(Data)
+            {                        
+               description = Data.results.description;               
+            }, "json");            
+                        
+         });
+         //---------------------------------------------------------------------
+         $('#button_search').on('click', function() 
+         {            
+            
+            $("#div_loading").show();
+            $.get("http://192.168.1.119/labs/eleicoes2016/backend/search_tweet_geocode.php?q="+$("#iq").val(), function(Data)
+            //$.get("http://192.168.1.119/labs/eleicoes2016/backend/cache.json?q="+$("#iq").val(), function(Data)
+            {                        
+               console.log(Data);
+               //$("#result").html(Data);
+               //json = jQuery.parseJSON(Data);
+               plot  = Data.results.plots;
+               tweet = Data.results.tweets;
+               max   = -9999999999999;
+               min   = 9999999999999;               
+               plotaGrafico();
+
+               $("#div_loading").hide();
+            }, "json");
+         });    
+         //---------------------------------------------------------------------       
+         //setInterval(mudaCorAuto, 100);
+      </script>
+ </body>
+</html>
